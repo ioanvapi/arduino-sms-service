@@ -2,7 +2,8 @@
 
 
 ## Overview
-Sms REST Service made of Arduino Pro mini, Ethernet ENC28J60 shield and EFCom SIM900 GSM shield
+Sms REST Service made of Arduino Pro mini, Ethernet ENC28J60 shield and EFCom SIM900 GSM shield.
+
 I didn't used exactly the suggested REST API but I used a similar approach and I removed the code that is not involved in sending a sms.
 
 ##Additional information
