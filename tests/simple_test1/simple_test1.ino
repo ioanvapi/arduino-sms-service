@@ -51,13 +51,13 @@ void loop() {
 
       if (c == '\n' && after_end_of_line) {        
         // send a standard http response header
-        client.println("HTTP/1.1 200 OK");
-        client.println("Content-Type: text/html");
+        client.println(F("HTTP/1.1 200 OK"));
+        client.println(F("Content-Type: text/html"));
         client.println();
-        client.println("<!DOCTYPE HTML>");
-        client.println("<html>");
-        client.print("Hello world from Arduino !!!");                        
-        client.println("</html>");
+        client.println(F("<!DOCTYPE HTML>"));
+        client.println(F("<html>"));
+        client.print(F("Hello world from Arduino !!!"));
+        client.println(F("</html>"));
         break;
       }
 
