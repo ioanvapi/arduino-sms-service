@@ -41,7 +41,7 @@ void loop() {
     Serial.println(F("## new client"));
 
     // an http request ends with a blank line
-    boolean blank_line = false;
+    boolean after_end_of_line = false;
 
     while (client.connected() && client.available()) 
     {
@@ -49,7 +49,7 @@ void loop() {
 
       Serial.write(c);  
 
-      if (c == '\n' && blank_line) {        
+      if (c == '\n' && after_end_of_line) {        
         // send a standard http response header
         client.println("HTTP/1.1 200 OK");
         client.println("Content-Type: text/html");
@@ -62,10 +62,10 @@ void loop() {
       }
 
       if (c == '\n') {
-        blank_line = true;
+        after_end_of_line = true;
       } 
       else if (c != '\r') {
-        blank_line = false;
+        after_end_of_line = false;
       }      
     }
 
