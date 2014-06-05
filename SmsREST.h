@@ -1,6 +1,6 @@
 
 #include "Arduino.h"
-#include <UIPEthernet.h>
+#include <Ethernet.h>
 
 // number of functions that can be defined in main app
 #define NUMBER_FUNCTIONS 4
