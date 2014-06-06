@@ -21,7 +21,10 @@ private:
 
   void handle_request(EthernetClient client);
   void send_http_headers(EthernetClient client);
-  void send_end_response(EthernetClient client);	
+  void send_func_exec_response(EthernetClient client, String fname, int result);  
+  void send_error_response(EthernetClient client, String error);
+  void send_end_response(EthernetClient client);
+  
   int freeRAM();
   String decode(String s);
   unsigned char h2int(char c);

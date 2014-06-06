@@ -42,28 +42,30 @@ void SmsREST::handle_request(EthernetClient client)
   boolean is_GET_request = false;
   boolean is_POST_request = false;
   boolean function_selected = false;
-  boolean params_selected = false;	
+  boolean arguments_selected = false;	
   boolean command_sent = false;		
   String arguments = "";	
-  uint8_t function_index = 0;
+  uint8_t function_index = -1;
 
   // Check if there is data available to read
   while (client.available()) 
   {
     char c = client.read();
-    delay(1);
-    buffer = buffer + c;
+
+    buffer += c;
 
     Serial.print(c);
 
-    // Check for end of request
+    // reset buffer when something important should come next
+    // read line by line and discard previous line 
+    // '/' is marker for function name
     if (c == '\n' || c == '/') 
     {      	
-      // Reset buffer
       buffer = "";
     }  
 
     // get HTTP request method (GET or POST)
+    // first space marks
     if (c == ' ' && !http_method_selected) 
     {		
       buffer.trim();	
@@ -78,88 +80,79 @@ void SmsREST::handle_request(EthernetClient client)
         is_POST_request = true;
         http_method_selected = true;
       }
-      //Serial.println("\n# HTTP method: " + buffer);
+
+      buffer = "";
+      continue;  // to read the next char
     }
 
-    // get function name
-    if (http_method_selected && ((c == ' ') || c == '?') && !function_selected) 
+    // determine function name and GET parameters (if GET detected)
+    if (http_method_selected && (c == ' ') && !function_selected) 
     {
-      if (c == ' ') 
-      {
-        buffer.trim();
-      }
-      else 
-      {
-        buffer = buffer.substring(0, buffer.length()-1);		
-      }			
+      buffer.trim();
+      String fname = buffer;
+      int idx = buffer.indexOf('?');
 
-      //Serial.println("\n# Buffer before function: " + buffer);
+      // GET has params in query line
+      if (is_GET_request && idx != -1)
+      {
+        fname = buffer.substring(0, idx);
 
-      // Check if function name is in array
+        if (idx < buffer.length() - 1)
+        {
+          arguments = decode(buffer.substring(idx + 1));
+        }        
+      }              
+
+      // Check if function name is in array or registered functions
       for (int i = 0; i < functions_number; i++)
       {						
-        if(buffer.equals(functions_names[i])) 
+        if(fname.equals(functions_names[i])) 
         {				
-          Serial.println("\n# Function: " + functions_names[i]);
-
-          function_selected = true;									
           function_index = i;
+          function_selected = true;
           break;
         }
       }
 
-      //Serial.println(F("# Buffer reset"));     
+      if (is_GET_request)
+      {
+        arguments_selected = true;  
+      }  
+
+      Serial.println("\n# Function: " + buffer);
+      Serial.println("# Arguments: " + arguments);
       buffer = "";
+      continue;
     }	
 
-    // HTTP GET request -> get function arguments
-    if (is_GET_request && function_selected && (c == ' ') && !params_selected) 
-    {		
-      Serial.println("\n# Arguments: " + buffer);
-
-      arguments = buffer;
-      params_selected = true;
-
-      //Serial.println(F("# Buffer reset"));     
-      buffer = "";
-    }
-
     // HTTP POST request -> get function arguments
-    if (is_POST_request && function_selected && (client.available() == 0) && !params_selected) 
+    if (is_POST_request && function_selected && (client.available() == 0) && !arguments_selected) 
     {		
-      Serial.println("\n# Arguments: " + buffer);
+      Serial.println("\n# POST Arguments: " + buffer);
 
       arguments = decode(buffer);
-      params_selected = true;
+      arguments_selected = true;
 
-      //Serial.println(F("# Buffer reset"));     
       buffer = "";
     }
+  }
 
-
-    // FINALLY !!! -> execute function and send http response 
-    if (function_selected && params_selected && !command_sent) 
-    {		
-      send_http_headers(client);
-      Serial.println(F("# Headers sent."));
-      // Execute function
-      int result = functions[function_index](arguments);
-      Serial.println(F("# function invoked"));			   
-      // Send feedback to client
-      client.print(F("{\"return_value\": "));
-      client.print(result);
-      client.print(F(", \"message\": \""));
-      client.print(F("Function "));
-      client.print(functions_names[function_index]);
-      client.print(F(" has been executed\", "));	
-      Serial.println(F("# before end response"));			   
-      // End of message
-      send_end_response(client);
-      Serial.println(F("# after end response"));			   
-      // End here
-      command_sent = true;   
-    }
-
+  // prepare and send http response
+  if (!function_selected)   // send error response
+  {
+    send_http_headers(client);
+    send_error_response(client, "Invalid function");
+    send_end_response(client);
+  }
+  else 
+  {		
+    send_http_headers(client);
+    // Execute function
+    int result = functions[function_index](arguments);
+    Serial.println(F("# function invoked"));			       
+    String fname = functions_names[function_index];
+    send_func_exec_response(client, fname, result);
+    send_end_response(client);
   }
 
 }
@@ -174,6 +167,25 @@ void SmsREST::send_http_headers(EthernetClient client)
   client.println();  
 }
 
+
+void SmsREST::send_func_exec_response(EthernetClient client, String fname, int result)
+{  
+  client.print(F("{\"return_value\": "));
+  client.print(result);
+  client.print(F(", \"message\": \""));
+  client.print(F("Function "));
+  client.print(fname);
+  client.print(F(" has been executed\", "));	  
+}  
+
+void SmsREST::send_error_response(EthernetClient client, String error)
+{  
+  client.print(F("{\"error\": \""));
+  client.print(error);
+  client.println(F("\","));
+}
+
+
 void SmsREST::send_end_response(EthernetClient client)
 {
   client.print(F("\"id\": \""));
@@ -183,14 +195,13 @@ void SmsREST::send_end_response(EthernetClient client)
   client.println(F("\", \"connected\": true}"));
 }
 
-
-
 void SmsREST::function(String function_name, int (*f)(String))
 {
   functions_names[functions_number] = function_name;
   functions[functions_number] = f;
   functions_number++;
 }
+
 
 int SmsREST::freeRAM () 
 {
@@ -240,5 +251,6 @@ unsigned char SmsREST::h2int(char c)
   }
   return(0);
 } 
+
 
 

@@ -29,6 +29,7 @@ void setup()
   rest.set_id("001");
   rest.set_name("arduino_device");
   rest.function("sendsms", sendSMS);
+  rest.function("proba", proba);
 
   ethInit();
 }
@@ -51,7 +52,7 @@ void ethInit()
 
 int sendSMS(String args) 
 {
-  Serial.print("# sendSMS() invoked with args: '");
+  Serial.print(F("# sendSMS() invoked with args: '"));
   Serial.print(args);
   Serial.println("'");
 
@@ -61,6 +62,15 @@ int sendSMS(String args)
   Serial.println("# Phone: " + phone);
   Serial.println("# Msg: " + msg);
   return 1;  
+}
+
+int proba(String args)
+{
+  Serial.print(F("# proba() invoked with args: '"));
+  Serial.print(args);
+  Serial.println("'");
+  
+  return args.length();
 }
 
 
