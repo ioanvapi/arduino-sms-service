@@ -182,7 +182,7 @@ void SmsREST::send_error_response(EthernetClient client, String error)
 {  
   client.print(F("{\"error\": \""));
   client.print(error);
-  client.println(F("\","));
+  client.print(F("\","));
 }
 
 
