@@ -11,10 +11,10 @@ IPAddress GW(10, 220, 0, 1);
 IPAddress MASK(255, 255, 0, 0);  
 IPAddress IP(10, 220, 10, 171);       //is-giro-01
 
-//IPAddress IP(192, 168, 1, 171);     // at home
-//IPAddress MASK(255, 255, 255, 0);   // at home
-//IPAddress GW(192, 168, 1, 1);       // at home
-//IPAddress DNS(192, 168, 1, 1);      // at home
+//IPAddress IP(192, 168, 1, 171);     
+//IPAddress MASK(255, 255, 255, 0);   
+//IPAddress GW(192, 168, 1, 1);       
+//IPAddress DNS(192, 168, 1, 1);      
 
 EthernetServer server(80);
 
@@ -64,12 +64,10 @@ int sendSMS(String args)
   return 1;  
 }
 
+
+// function registered for testing purpose
 int proba(String args)
 {
-  Serial.print(F("# proba() invoked with args: '"));
-  Serial.print(args);
-  Serial.println("'");
-  
   return args.length();
 }
 
