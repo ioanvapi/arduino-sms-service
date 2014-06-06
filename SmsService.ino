@@ -28,7 +28,11 @@ void setup()
   // Give name and ID to device
   rest.set_id("001");
   rest.set_name("arduino_device");
+  
+  //register REST functions
   rest.function("sendsms", sendSMS);
+  
+  // this one is for testing purpose
   rest.function("proba", proba);
 
   ethInit();
