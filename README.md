@@ -4,7 +4,9 @@
 ## Overview
 Sms REST Service made of Arduino Nano, Ethernet Wiznet W5100 shield and EFCom SIM900 GSM shield.
 
-I used a similar approach as the suggestet REST API but I removed the code that is not involved in sending a sms.
+I used a similar approach as the suggestet REST API but I removed the code that is not involved in sending a SMS.
+
+The service supports both GET and POST methods and responds with a status in json format.
 
 ##Additional information
 - [EFCom Pro GPRS/GSM Module Shield](http://www.elecfreaks.com/wiki/index.php?title=EFCom_Pro_GPRS/GSM_Module)
